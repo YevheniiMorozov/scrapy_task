@@ -1,75 +1,106 @@
 import time
-import random
+from collections import defaultdict
+
 import scrapy
-import serializing_and_ua as sua
+from fake_useragent import UserAgent
+
+
+ua = UserAgent(verify_ssl=False)
 
 
 class KijijiSpider(scrapy.Spider):
     name = 'kijiji'
     allowed_domains = ['kijiji.ca']
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-                      "Chrome/104.0.0.0 Safari/537.36",
-    }
-    cookies = {'dont_merge_cookies': True}
+    headers = {"User-Agent": ua.random}
     count = 0
-    url_dict = {}
+    locations = [
+        "alberta/c37l9003", "edmonton/c37l1700203", "british-columbia/c37l9007", "victoria-bc/c37l1700173"
+    ]
+    # locations = [
+    #     "victoria-bc/c37l1700173"
+    # ]
+
+    parsed_links = defaultdict(list)
 
     def start_requests(self):
-        locations = [
-            "alberta/c37l9003", "edmonton/c37l1700203", "british-columbia/c37l9007", "victoria-bc/c37l1700173"
-        ]
-        for location in locations:
-            url = 'http://www.kijiji.ca/b-apartments-condos/' + location
-            time.sleep(1)
+        for location in self.locations:
+            url = 'https://www.kijiji.ca/b-apartments-condos/' + location
+            key = location.split("/")[0]
             yield scrapy.Request(
-                url=url, callback=self.parse, headers=KijijiSpider.headers, meta={'location': location.split("/")[0]}
+                url=url, callback=self.parser, headers=self.headers, meta={'location': key}, dont_filter=True
             )
 
-        # url = 'https://www.kijiji.ca/b-apartments-condos/victoria-bc/c37l1700173'
-        # yield scrapy.Request(url=url, callback=self.parse, headers=KijijiSpider.headers, )
-
-    def parse(self, response):
-        items = response.xpath("//div[@class='container-results large-images'][2]//div/div/div[2]/div/div[2]")
+    def parser(self, response):
+        # time.sleep(3)
+        print("Looking next page")
+        self.count += 1
         next_page = response.xpath("//a[@title='Next']//@href").get()
-        KijijiSpider.url_dict[response.url] = next_page
-        if KijijiSpider.url_dict[response.url]:
+        self.parsed_links[response.request.meta["location"]].append(response.url)
+        if self.count == 30:
+            self.count = 0
+            print("Change headers")
+            time.sleep(3)
+            self.headers["User-Agent"] = {"User-Agent": ua.random}
+        if next_page:
+            print("page find")
             yield response.follow(
-                url=KijijiSpider.url_dict[response.url],
-                callback=self.parse,
-                headers=KijijiSpider.headers,
-                meta=response.request.meta
+                url=next_page,
+                callback=self.parser,
+                headers=self.headers,
+                meta=response.request.meta,
+                dont_filter=True
+            )
+        elif not response.xpath('//body/text()').get():
+            print("Get empty body, retry to find url for next page")
+            yield scrapy.Request(
+                url=response.url,
+                callback=self.parser,
+                headers=self.headers,
+                meta=response.request.meta,
+                dont_filter=True
+            )
+        else:
+            location = response.meta['location']
+            for url in self.parsed_links[location]:
+                print("Now parse page ", url)
+                yield scrapy.Request(
+                    url=url, callback=self.parse_item_links, headers=self.headers, meta=response.meta
+                )
+
+    def parse_item_links(self, response):
+        # time.sleep(1)
+        print('Get links from ', response.url)
+        items = response.xpath("//div[@class='container-results large-images'][2]//div/div/div[2]/div/div[2]")
+        if not items:
+            print("Empty data in {}, reparse...".format(response.url))
+            yield scrapy.Request(
+                url=response.url,
+                callback=self.parse_item_links,
+                headers=self.headers,
+                meta=response.meta,
+                dont_filter=True
             )
         for item in items:
-            time.sleep(0.2)
-            KijijiSpider.count += 1
-            if KijijiSpider.count % 30 == 0:
-                KijijiSpider.headers = sua.user_agent()
-                KijijiSpider.count = 0
-                print("changing user-agent")
-                time.sleep(1)
-            url = item.xpath(".//@href").get()
-            time.sleep(random.random())
-            time.sleep(0.2)
+            item = item.xpath('.//a/@href').get()
+            self.count += 1
+            if self.count % 30 == 0:
+                self.count = 0
+                time.sleep(3)
             yield response.follow(
-                url=url, callback=self.parse_page, headers=KijijiSpider.headers, meta=response.request.meta
-            )
-
-        if KijijiSpider.url_dict[response.url]:
-            yield response.follow(
-                url=KijijiSpider.url_dict[response.url],
-                callback=self.parse,
-                headers=KijijiSpider.headers,
-                meta=response.request.meta
+                url=item, callback=self.parse_page, headers=self.headers, meta=response.request.meta
             )
 
     def parse_page(self, response):
-
+        time.sleep(3)
         item_id = response.xpath('//*[@id="ViewItemPage"]/div/div/nav/ol/li[5]/a/text()').get()
         if not item_id:
             print("Invalid data, reparse url ", response.url)
             yield scrapy.Request(
-                url=response.url, callback=self.parse_page, headers=KijijiSpider.headers, meta=response.request.meta
+                url=response.url,
+                callback=self.parse_page,
+                headers=self.headers,
+                meta=response.request.meta,
+                dont_filter=True
             )
         else:
             estate_title = response.xpath('//*[@id="vip-body"]/div[1]')

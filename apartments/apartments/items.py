@@ -3,7 +3,7 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/items.html
 import scrapy
-from spiders.serializing_and_ua import time_serializer
+from apartments.apartments.serializing_and_ua import time_serializer
 
 
 class User:
