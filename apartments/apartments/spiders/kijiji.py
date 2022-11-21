@@ -15,11 +15,12 @@ class KijijiSpider(scrapy.Spider):
     headers = {"User-Agent": ua.random}
     count = 0
     locations = [
-        "alberta/c37l9003", "edmonton/c37l1700203", "british-columbia/c37l9007", "victoria-bc/c37l1700173"
+        "alberta/c37l9003", "edmonton/c37l1700203", "british-columbia/c37l9007", "victoria-bc/c37l1700173",
+        'manitoba/c37l9006', 'winnipeg/c37l1700192', 'new-brunswick/c37l9005', 'fredericton/c37l1700018',
+        'newfoundland/c37l9008', 'st-johns/c37l1700113', "northwest-territories/c37l1700103", 'yellowknife/c37l1700104',
+        'ville-de-quebec/c37l1700124', 'ville-de-quebec/c37l1700124', 'yukon/c37l1700101', 'whitehorse/c37l1700102',
+        'saskatchewan/c37l9009', 'regina/c37l1700196', 'nova-scotia/c37l9002', 'city-of-halifax/c37l1700321'
     ]
-    # locations = [
-    #     "victoria-bc/c37l1700173"
-    # ]
 
     parsed_links = defaultdict(list)
 
@@ -36,7 +37,6 @@ class KijijiSpider(scrapy.Spider):
             )
 
     def parser(self, response):
-        # time.sleep(3)
         print("Looking next page")
         self.count += 1
         next_page = response.xpath("//a[@title='Next']//@href").get()
