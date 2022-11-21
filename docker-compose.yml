@@ -18,7 +18,7 @@ services:
   app:
     build: .
     container_name: app
-    command: bash -c "uvicorn main:api --port=8000 --host=0.0.0.0 --reload"
+    command: bash -c "scrapy crawl kijiji && uvicorn main:api --port=8000 --host=0.0.0.0 --reload"
     expose:
       - 8000
     ports:
