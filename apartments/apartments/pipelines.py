@@ -32,10 +32,12 @@ class ApartmentsPipeline:
             location_id = location.id if location else None
             if not location:
                 location = Location(**item["location"])
-                apartment.location = location
                 print("Commit location ", location.name)
                 session.add(location)
                 session.commit()
+                location = session.query(Location).filter_by(**item['location']).first()
+                location_id = location.id if location else None
+                apartment.location_id = location_id
             else:
                 apartment.location_id = location_id
             user = session.query(User).filter_by(**item['user']).first()
