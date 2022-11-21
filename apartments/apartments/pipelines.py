@@ -5,26 +5,50 @@
 
 
 # useful for handling different item types with a single interface
-from itemadapter import ItemAdapter
+from scrapy.exceptions import DropItem
 from sqlalchemy.orm import sessionmaker
-from models import Apartments, User, Utilities, Unit, Location, create_items_table, db_connect
+from .models import Apartments, User, Utilities, Unit, Location, create_items_table, db_connect
 
 
 class ApartmentsPipeline:
 
     def __init__(self):
-        engine = db_connect()
-        create_items_table(engine)
-        self.Session = sessionmaker(bind=engine)
+        self.engine = db_connect()
+        create_items_table(self.engine)
+        self.Session = sessionmaker(bind=self.engine)
 
     def process_item(self, item, spider):
-        session = self.Session()
-        instance = session.query(Location).filter_by(**item['location']).one_or_none()
-        if instance:
-            return instance
-        location_instance = Location(**item)
-        instance = session.query(Unit).filter_by(**item['location']).one_or_none()
-        if instance:
-            return instance
-        unit_instance = Unit(**item)
-
+        print(item['apartment']['apartment_id'])
+        with self.Session() as session:
+            if session.query(Apartments).filter_by(**item['apartment']).first():
+                raise DropItem("Duplicate item")
+            units = Unit(**item['units'])
+            utilities = Utilities(**item['utilities'])
+            apartment = Apartments(**item["apartment"])
+            apartment.utilities = utilities
+            apartment.unit = units
+            location = session.query(Location).filter_by(**item['location']).first()
+            location_id = location.id if location else None
+            if not location:
+                location = Location(**item["location"])
+                apartment.location = location
+                print("Commit location ", location.name)
+                session.add(location)
+                session.commit()
+            else:
+                apartment.location_id = location_id
+            user = session.query(User).filter_by(**item['user']).first()
+            user_id = user.id if user else None
+            if not user:
+                user = User(**item["user"])
+                apartment.user = user
+            else:
+                apartment.user_id = user_id
+            session.add(utilities)
+            session.commit()
+            session.add(units)
+            session.commit()
+            session.add(user)
+            session.commit()
+            session.add(apartment)
+            session.commit()

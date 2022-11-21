@@ -3,19 +3,15 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/items.html
 import scrapy
-from apartments.apartments.serializing_and_ua import time_serializer
+from .serializing import time_serializer
 
 
-class User:
-    pass
+class LocationItem(scrapy.Item):
+    name = scrapy.Field()
 
 
-class LocationItem:
-    location = scrapy.Field()
-
-
-class UnitItem:
-    size = scrapy.Item(serializer=int)
+class UnitItem(scrapy.Item):
+    size = scrapy.Field(serializer=int)
     furnished = scrapy.Field(serializer=bool)
     laundry = scrapy.Field(serializer=bool)
     dishwasher = scrapy.Field(serializer=bool)
@@ -25,29 +21,30 @@ class UnitItem:
     smocking_permitted = scrapy.Field(serializer=bool)
 
 
-class UtilitiesItem:
+class UtilitiesItem(scrapy.Item):
     hydro = scrapy.Field(serializer=bool)
     heat = scrapy.Field(serializer=bool)
     water = scrapy.Field(serializer=bool)
     wifi = scrapy.Field(serializer=bool)
-    parking = scrapy.Item(serializer=int)
-    agreement = scrapy.Item(serializer=str)
-    move_in_date = scrapy.Item(serializer=str)
+    parking = scrapy.Field(serializer=int)
+    agreement = scrapy.Field(serializer=str)
+    move_in_date = scrapy.Field(serializer=time_serializer)
     pet_friendly = scrapy.Field(serializer=bool)
 
 
-class UserItem():
-    pass
+class UserItem(scrapy.Item):
+    profile = scrapy.Field()
+    owner = scrapy.Field(serializer=bool)
+    registry_time = scrapy.Field()
+    listing = scrapy.Field(serializer=int)
+    website = scrapy.Field()
 
 
 class ApartmentsItem(scrapy.Item):
-    title = scrapy.Item(serializer=str)
-    location = LocationItem()
-    apartment_id = scrapy.Item(serializer=int)
-    address = scrapy.Item(serializer=str)
-    published = scrapy.Item(serializer=time_serializer)
-    price = scrapy.Item(serializer=str)
-    user = UserItem()
-    included_utilities = UtilitiesItem()
-    unit = UnitItem
-    description = scrapy.Item(serializer=str)
+    title = scrapy.Field(serializer=str)
+    apartment_id = scrapy.Field(serializer=int)
+    address = scrapy.Field(serializer=str)
+    published = scrapy.Field(serializer=time_serializer)
+    price = scrapy.Field(serializer=int)
+    include_utilities = scrapy.Field(serializer=str)
+    description = scrapy.Field(serializer=str)

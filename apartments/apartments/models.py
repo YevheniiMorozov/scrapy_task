@@ -4,13 +4,13 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.declarative import declarative_base
 
-from apartments.apartments import settings
+import settings
 
 Base = declarative_base()
 
 
 def db_connect() -> Engine:
-    return create_engine(URL(**settings.DATABASE))
+    return create_engine(URL.create(**settings.DATABASE))
 
 
 def create_items_table(engine: Engine):
@@ -23,9 +23,9 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     profile = Column(String(250), unique=True)
     owner = Column(Boolean)
-    listing = Column(Integer)
+    listing = Column(Integer, nullable=True)
     registry_time = Column(String(50))
-    website = Column(String(50))
+    website = Column(String(50), nullable=True)
 
 
 class Location(Base):
@@ -44,7 +44,7 @@ class Utilities(Base):
     wifi = Column(Boolean)
     parking = Column(Integer)
     agreement = Column(String(50))
-    move_in_date = Column(DateTime)
+    move_in_date = Column(DateTime, nullable=True)
     pet_friendly = Column(Boolean)
 
 
@@ -72,11 +72,17 @@ class Apartments(Base):
     apartment_id = Column(Integer, unique=True, nullable=False)
     address = Column(String(200))
     published = Column(DateTime)
-    price = Column(String(500), nullabule=True)
+    price = Column(Integer, nullable=True)
     user_id = Column(ForeignKey(User.id))
     user = relationship(User)
+    include_utilities = Column(String(50))
     utilities_id = Column(ForeignKey(Utilities.id))
-    included_utilities = relationship(Utilities)
+    utilities = relationship(Utilities)
     unit_id = Column(ForeignKey(Unit.id))
     unit = relationship(Unit)
-    description = Column(String(500))
+    description = Column(String(2500))
+
+
+if __name__ == '__main__':
+    Base.metadata.drop_all(db_connect())
+    Base.metadata.create_all(db_connect())
