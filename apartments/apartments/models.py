@@ -1,20 +1,9 @@
-from sqlalchemy import Column, Integer, String, create_engine, Boolean, DateTime, ForeignKey
-from sqlalchemy.engine.base import Engine
+from sqlalchemy import Column, Integer, String,  Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from sqlalchemy.engine.url import URL
+
 from sqlalchemy.ext.declarative import declarative_base
 
-import settings
-
 Base = declarative_base()
-
-
-def db_connect() -> Engine:
-    return create_engine(URL.create(**settings.DATABASE))
-
-
-def create_items_table(engine: Engine):
-    Base.metadata.create_all(engine)
 
 
 class User(Base):
@@ -84,5 +73,6 @@ class Apartments(Base):
 
 
 if __name__ == '__main__':
+    from .db_settings import db_connect
     Base.metadata.drop_all(db_connect())
     Base.metadata.create_all(db_connect())

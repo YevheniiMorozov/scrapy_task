@@ -16,10 +16,6 @@ NEWSPIDER_MODULE = 'apartments.spiders'
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-SELENIUM_DRIVER_NAME = 'chrome'
-SELENIUM_DRIVER_EXECUTABLE_PATH = os.path.join(dir_path, 'chromedriver')
-SELENIUM_DRIVER_ARGUMENTS = ['-headless']  # '--headless' if using chrome instead of firefox
-
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36'
@@ -30,9 +26,6 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 # CONCURRENT_REQUESTS = 32
 
-DOWNLOADER_MIDDLEWARES = {
-    'scrapy_selenium.SeleniumMiddleware': 800
-}
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -105,7 +98,7 @@ TWISTED_REACTOR = 'twisted.internet.asyncioreactor.AsyncioSelectorReactor'
 
 DATABASE = {
     "drivername": "postgresql",
-    "host": 'localhost',
+    "host": 'database',
     "port": 5432,
     "username": config('POSTGRES_USER'),
     "password": config('POSTGRES_PASSWORD'),

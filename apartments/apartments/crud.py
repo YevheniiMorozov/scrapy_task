@@ -17,7 +17,7 @@ async def init_models():
         await conn.run_sync(md.Base.metadata.create_all)
 
 
-async def get_all_apartments(session: AsyncSession, filters: dict = None, price: list = None, dt: list = None):
+async def get_all_apartments(session: AsyncSession, filters=None, price=None, dt=None):
     location = await session.execute(select(md.Location).filter_by(**filters["location"]).limit(1))
     location = location.scalars().first()
     location_id = location.id

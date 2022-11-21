@@ -7,7 +7,8 @@
 # useful for handling different item types with a single interface
 from scrapy.exceptions import DropItem
 from sqlalchemy.orm import sessionmaker
-from .models import Apartments, User, Utilities, Unit, Location, create_items_table, db_connect
+from .models import Apartments, User, Utilities, Unit, Location
+from .db_settings import db_connect, create_items_table
 
 
 class ApartmentsPipeline:

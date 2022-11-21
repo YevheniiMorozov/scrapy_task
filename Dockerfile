@@ -1,11 +1,16 @@
-FROM python:3.10
+FROM python:3.8
 
-WORKDIR /apartments
+WORKDIR /usr/src/api
 
-COPY apartments/requirements.txt /apartments/requirements.txt
+COPY requirements.txt ./
 
-RUN pip install --no-cache-dir --upgrade -r /apartments/requirements.txt
+RUN pip install -r requirements.txt \
+    && rm -rf /root/.cache/pip
 
-COPY ./apartments /apartments
+COPY . .
 
-WORKDIR /apartments
+WORKDIR /usr/src/api/apartments/apartments
+
+RUN ls
+
+EXPOSE 8000

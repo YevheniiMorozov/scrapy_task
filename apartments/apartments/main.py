@@ -12,7 +12,7 @@ api = FastAPI()
 
 @api.get('/')
 async def get_results(
-        location: Optional[str] = None,
+        location: Optional[str] = "victoria-bc",
         dt: Optional[str] = None,
         price: Optional[str] = None,
         hydro: Optional[bool] = None,
@@ -29,7 +29,6 @@ async def get_results(
 ):
     if dt:
         dt = [serializing.time_serializer(value) for value in dt.split("-")]
-        # dt = [value for value in dt.split("/")]
     if price:
         price = [int(pr) for pr in price.split("-")]
     filters = {
